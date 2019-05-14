@@ -26,9 +26,15 @@ public class FlutterUploaderInitializer extends ContentProvider {
 
   @Override
   public boolean onCreate() {
-    int maximumConcurrentTask = getMaxConcurrentTaskMetadata(getContext());
+    final Context context = getContext();
+    if (context == null) {
+      Log.e(TAG, "null context");
+      return false;
+    }
+
+    int maximumConcurrentTask = getMaxConcurrentTaskMetadata(context);
     WorkManager.initialize(
-        getContext(),
+        context,
         new Configuration.Builder()
             .setExecutor(Executors.newFixedThreadPool(maximumConcurrentTask))
             .build());
