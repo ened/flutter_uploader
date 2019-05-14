@@ -24,7 +24,9 @@ import com.google.gson.JsonIOException;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -41,6 +43,41 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.internal.Util;
+import okio.BufferedSink;
+import okio.Okio;
+import okio.Source;
+
+class RequestBodyUtil {
+  public static RequestBody create(final MediaType mediaType, final InputStream inputStream) {
+    return new RequestBody() {
+      @Override
+      public MediaType contentType() {
+        return mediaType;
+      }
+
+      @Override
+      public long contentLength() {
+        try {
+          return inputStream.available();
+        } catch (IOException e) {
+          return 0;
+        }
+      }
+
+      @Override
+      public void writeTo(BufferedSink sink) throws IOException {
+        Source source = null;
+        try {
+          source = Okio.source(inputStream);
+          sink.writeAll(source);
+        } finally {
+          Util.closeQuietly(source);
+        }
+      }
+    };
+  }
+}
 
 public class UploadWorker extends Worker implements CountProgressListener {
   public static final String UPDATE_PROCESS_EVENT =
@@ -111,57 +148,73 @@ public class UploadWorker extends Worker implements CountProgressListener {
 
     try {
       Map<String, String> headers = null;
-      Map<String, String> parameters = null;
-      List<FileItem> files = new ArrayList<>();
       Gson gson = new Gson();
+      List<FileItem> files = new ArrayList<>();
+
+      //      Map<String, String> parameters = null;
       Type type = new TypeToken<Map<String, String>>() {}.getType();
       Type fileItemType = new TypeToken<List<FileItem>>() {}.getType();
-
+      //
       if (headersJson != null) {
         headers = gson.fromJson(headersJson, type);
       }
-
-      if (parametersJson != null) {
-        parameters = gson.fromJson(parametersJson, type);
-      }
-
+      //
+      //      if (parametersJson != null) {
+      //        parameters = gson.fromJson(parametersJson, type);
+      //      }
+      //
       if (filesJson != null) {
         files = gson.fromJson(filesJson, fileItemType);
       }
+      //
+      //      MultipartBody.Builder formRequestBuilder = prepareRequest(parameters, null);
+      //
+      //      int fileExistsCount = 0;
+      //      for (FileItem item : files) {
+      //        File file = new File(item.getPath());
+      //        Log.d(TAG, "attaching file: " + item.getPath());
+      //
+      //        if (file.exists()) {
+      //          fileExistsCount++;
+      //          RequestBody fileBody =
+      //              RequestBody.create(MediaType.parse(GetMimeType(item.getPath())), file);
+      //          formRequestBuilder.addFormDataPart(item.getFieldname(), item.getFilename(),
+      // fileBody);
+      //        } else {
+      //          Log.d(TAG, "File does not exists -> file:" + item.getPath());
+      //        }
+      //      }
+      //
+      //      if (fileExistsCount == 0) {
+      //        return Result.failure(
+      //            createOutputErrorData(
+      //                UploadStatus.FAILED,
+      //                statusCode,
+      //                "flutter_upload_error",
+      //                "there are not files to upload",
+      //                null));
+      //      }
 
-      MultipartBody.Builder formRequestBuilder = prepareRequest(parameters, null);
-
-      int fileExistsCount = 0;
+      RequestBody requestBody = null;
       for (FileItem item : files) {
         File file = new File(item.getPath());
         Log.d(TAG, "attaching file: " + item.getPath());
 
-        if (file.exists()) {
-          fileExistsCount++;
-          RequestBody fileBody =
-              RequestBody.create(MediaType.parse(GetMimeType(item.getPath())), file);
-          formRequestBuilder.addFormDataPart(item.getFieldname(), item.getFilename(), fileBody);
-        } else {
-          Log.d(TAG, "File does not exists -> file:" + item.getPath());
-        }
+        requestBody =
+            RequestBodyUtil.create(
+                MediaType.parse(GetMimeType(item.getPath())), new FileInputStream(file));
+
+
       }
 
-      if (fileExistsCount == 0) {
-        return Result.failure(
-            createOutputErrorData(
-                UploadStatus.FAILED,
-                statusCode,
-                "flutter_upload_error",
-                "there are not files to upload",
-                null));
+      if (requestBody == null) {
+        throw new RuntimeException("fuck");
       }
 
-      RequestBody requestBody =
-          new CountingRequestBody(formRequestBuilder.build(), getId().toString(), this);
+      requestBody = new CountingRequestBody(requestBody, getId().toString(), this);
       Request.Builder requestBuilder = new Request.Builder();
 
       if (headers != null) {
-
         for (String key : headers.keySet()) {
 
           String header = headers.get(key);
