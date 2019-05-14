@@ -10,6 +10,14 @@ import android.os.Build;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.work.Data;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.reflect.TypeToken;
@@ -24,13 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.work.Data;
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
 import okhttp3.Call;
 import okhttp3.Headers;
 import okhttp3.MediaType;
@@ -219,6 +220,8 @@ public class UploadWorker extends Worker implements CountProgressListener {
                 }
                 return Result.failure(createOutputErrorData(UploadStatus.FAILED, statusCode, "flutter_upload_error",  responseString, null));
             }
+
+
             Data outputData = new Data.Builder()
                     .putString(EXTRA_ID, getId().toString())
                     .putInt(EXTRA_STATUS, UploadStatus.COMPLETE)

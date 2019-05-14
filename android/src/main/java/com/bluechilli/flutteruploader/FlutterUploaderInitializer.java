@@ -11,12 +11,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-import java.util.concurrent.Executors;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.work.Configuration;
 import androidx.work.WorkManager;
+
+import java.util.concurrent.Executors;
 
 public class FlutterUploaderInitializer extends ContentProvider {
 
