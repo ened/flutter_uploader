@@ -295,6 +295,7 @@ public class FlutterUploaderPlugin
 
   private void sendFailed(
       String id, int status, int statusCode, String code, String message, String[] details) {
+
     String tag = tasks.get(id);
     Map<String, Object> args = new HashMap<>();
     args.put("task_id", id);
@@ -302,7 +303,8 @@ public class FlutterUploaderPlugin
     args.put("statusCode", statusCode);
     args.put("code", code);
     args.put("message", message);
-    args.put("details", details);
+    args.put(
+        "details", details != null ? new ArrayList<>(Arrays.asList(details)) : new ArrayList<>());
     args.put("tag", tag);
     channel.invokeMethod("uploadFailed", args);
   }

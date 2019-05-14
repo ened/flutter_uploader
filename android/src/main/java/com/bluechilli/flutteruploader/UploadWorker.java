@@ -463,17 +463,18 @@ public class UploadWorker extends Worker implements CountProgressListener {
         && currentProgress != previousProgress;
   }
 
+  @NonNull
   private String[] getStacktraceAsStringList(StackTraceElement[] stacktraces) {
     List<String> output = new ArrayList<>();
 
-    if (stacktraces == null || (stacktraces != null && stacktraces.length == 0)) {
-      return null;
+    if (stacktraces == null || stacktraces.length == 0) {
+      return new String[] {};
     }
 
     for (StackTraceElement stacktrace : stacktraces) {
       output.add(stacktrace.toString());
     }
 
-    return (String[]) output.toArray();
+    return output.toArray(new String[] {});
   }
 }
