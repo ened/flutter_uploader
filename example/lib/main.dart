@@ -186,7 +186,7 @@ class _UploadScreenState extends State<UploadScreen> {
             fieldname: "file",
           )
         ],
-        method: UplaodMethod.POST,
+        method: UploadMethod.POST,
         tag: tag,
         showNotification: true,
       );
@@ -222,7 +222,7 @@ class _UploadScreenState extends State<UploadScreen> {
             fieldname: "file",
           )
         ],
-        method: UplaodMethod.POST,
+        method: UploadMethod.POST,
         tag: tag,
         showNotification: true,
       );

@@ -51,7 +51,7 @@ class UploadTaskStatus {
   static const paused = const UploadTaskStatus._internal(6);
 }
 
-enum UplaodMethod {
+enum UploadMethod {
   POST,
   PUT,
   PATCH,
@@ -222,7 +222,7 @@ class FlutterUploader {
   Future<String> enqueue({
     @required String url,
     @required List<FileItem> files,
-    UplaodMethod method = UplaodMethod.POST,
+    UploadMethod method = UploadMethod.POST,
     Map<String, String> headers,
     Map<String, String> data,
     bool showNotification = false,
