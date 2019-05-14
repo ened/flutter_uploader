@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.work.Data;
+import androidx.work.ListenableWorker.Result.Success;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
@@ -222,21 +223,41 @@ public class UploadWorker extends Worker implements CountProgressListener {
                 UploadStatus.FAILED, statusCode, "flutter_upload_error", responseString, null));
       }
 
-      Data outputData =
-          new Data.Builder()
-              .putString(EXTRA_ID, getId().toString())
-              .putInt(EXTRA_STATUS, UploadStatus.COMPLETE)
-              .putInt(EXTRA_STATUS_CODE, statusCode)
-              .putString(EXTRA_RESPONSE, responseString)
-              .putString(EXTRA_HEADERS, gson.toJson(outputHeaders))
-              .build();
-
-      if (showNotification) {
-        updateNotification(context, tag, UploadStatus.COMPLETE, 0, null);
+      Result result;
+      try {
+        result =
+            Result.success(
+                new Data.Builder()
+                    .putString(EXTRA_ID, getId().toString())
+                    .putInt(EXTRA_STATUS, UploadStatus.COMPLETE)
+                    .putInt(EXTRA_STATUS_CODE, statusCode)
+                    .putString(EXTRA_RESPONSE, responseString)
+                    .putString(EXTRA_HEADERS, gson.toJson(outputHeaders))
+                    .build());
+      } catch (IllegalStateException e) {
+        Log.e(
+            TAG,
+            "The upload has succeeded, however the HTTP response (including the headers) has exceed the maximum package size of "
+                + Data.MAX_DATA_BYTES
+                + ". Therefore setting this task result to FAILED.");
+        result =
+            Result.failure(
+                new Data.Builder()
+                    .putString(EXTRA_ID, getId().toString())
+                    .putInt(EXTRA_STATUS, UploadStatus.FAILED)
+                    .putInt(EXTRA_STATUS_CODE, statusCode)
+                    .build());
       }
 
-      return Result.success(outputData);
+      if (showNotification) {
+        if (result instanceof Success) {
+          updateNotification(context, tag, UploadStatus.COMPLETE, 0, null);
+        } else {
+          updateNotification(context, tag, UploadStatus.FAILED, 0, null);
+        }
+      }
 
+      return result;
     } catch (JsonIOException ex) {
       ex.printStackTrace();
 
