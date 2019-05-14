@@ -1,8 +1,7 @@
 group 'com.bluechilli.flutteruploader'
 version '1.0-SNAPSHOT'
-def lifecycle_version = "2.0.0"
-def work_version = '1.0.0-rc02'
-def futures_version = "1.0.0-alpha03"
+def work_version = '2.0.1'
+def futures_version = "1.0.0-beta01"
 
 buildscript {
     repositories {
@@ -37,12 +36,12 @@ android {
 }
 
 dependencies {
-    implementation("android.arch.work:work-runtime:$work_version") {
+    api("androidx.work:work-runtime:$work_version") {
         exclude group: 'com.google.guava', module: 'listenablefuture'
     }
     implementation "androidx.concurrent:concurrent-futures:$futures_version"
-    implementation 'androidx.annotation:annotation:1.0.1'
-    implementation 'androidx.core:core:1.0.1'
+    implementation 'androidx.annotation:annotation:1.0.2'
+    implementation 'androidx.core:core:1.0.2'
     implementation 'com.squareup.okhttp3:okhttp:3.13.1'
     implementation 'com.google.code.gson:gson:2.8.5'
 }
