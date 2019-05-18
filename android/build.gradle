@@ -10,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.0'
+        classpath 'com.android.tools.build:gradle:3.4.1'
     }
 }
 
@@ -25,6 +25,13 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 28
+
+    android {
+        compileOptions {
+            sourceCompatibility 1.8
+            targetCompatibility 1.8
+        }
+    }
 
     defaultConfig {
         minSdkVersion 16

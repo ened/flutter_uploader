@@ -38,10 +38,15 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
-/** FlutterUploaderPlugin */
+/**
+ * FlutterUploaderPlugin
+ */
 public class FlutterUploaderPlugin
     implements MethodCallHandler, Application.ActivityLifecycleCallbacks {
-  /** Plugin registration. */
+
+  /**
+   * Plugin registration.
+   */
   private static final String TAG = "flutter_upload_task";
 
   private static final String CHANNEL_NAME = "flutter_uploader";
@@ -53,7 +58,7 @@ public class FlutterUploaderPlugin
   private Map<String, String> tasks = new HashMap<>();
   private Gson gson = new Gson();
   private int taskIdKey = 0;
-  private final String[] validHttpMethods = new String[] {"POST", "PUT", "PATCH"};
+  private final String[] validHttpMethods = new String[]{"POST", "PUT", "PATCH"};
 
   public static void registerWith(Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), CHANNEL_NAME);
@@ -83,48 +88,46 @@ public class FlutterUploaderPlugin
       };
 
   private final Observer<List<WorkInfo>> completedEventObserver =
-      new Observer<List<WorkInfo>>() {
-        @Override
-        public void onChanged(List<WorkInfo> workInfoList) {
-          for (WorkInfo info : workInfoList) {
-            String id = info.getId().toString();
-            if (!completedTasks.containsKey(id)) {
-              if (info.getState().isFinished()) {
-                completedTasks.put(id, true);
-                int status =
-                    info.getOutputData().getInt(UploadWorker.EXTRA_STATUS, UploadStatus.COMPLETE);
-                switch (info.getState()) {
-                  case FAILED:
-                    int statusCode =
-                        info.getOutputData().getInt(UploadWorker.EXTRA_STATUS_CODE, 200);
-                    String code = info.getOutputData().getString(UploadWorker.EXTRA_ERROR_CODE);
-                    String errorMessage =
-                        info.getOutputData().getString(UploadWorker.EXTRA_ERROR_MESSAGE);
-                    String[] details =
-                        info.getOutputData().getStringArray(UploadWorker.EXTRA_ERROR_DETAILS);
-                    sendFailed(id, status, statusCode, code, errorMessage, details);
-                    break;
-                  case CANCELLED:
-                    sendFailed(
-                        id,
-                        UploadStatus.CANCELED,
-                        500,
-                        "flutter_upload_cancelled",
-                        "upload has been cancelled",
-                        null);
-                    break;
-                  default:
-                    Map<String, String> headers = null;
-                    Type type = new TypeToken<Map<String, String>>() {}.getType();
-                    String headerJson = info.getOutputData().getString(UploadWorker.EXTRA_HEADERS);
-                    if (headerJson != null) {
-                      headers = gson.fromJson(headerJson, type);
-                    }
+      workInfoList -> {
+        for (WorkInfo info : workInfoList) {
+          String id = info.getId().toString();
+          if (!completedTasks.containsKey(id)) {
+            if (info.getState().isFinished()) {
+              completedTasks.put(id, true);
+              int status =
+                  info.getOutputData().getInt(UploadWorker.EXTRA_STATUS, UploadStatus.COMPLETE);
+              switch (info.getState()) {
+                case FAILED:
+                  int statusCode =
+                      info.getOutputData().getInt(UploadWorker.EXTRA_STATUS_CODE, 200);
+                  String code = info.getOutputData().getString(UploadWorker.EXTRA_ERROR_CODE);
+                  String errorMessage =
+                      info.getOutputData().getString(UploadWorker.EXTRA_ERROR_MESSAGE);
+                  String[] details =
+                      info.getOutputData().getStringArray(UploadWorker.EXTRA_ERROR_DETAILS);
+                  sendFailed(id, status, statusCode, code, errorMessage, details);
+                  break;
+                case CANCELLED:
+                  sendFailed(
+                      id,
+                      UploadStatus.CANCELED,
+                      500,
+                      "flutter_upload_cancelled",
+                      "upload has been cancelled",
+                      null);
+                  break;
+                default:
+                  Map<String, String> headers = null;
+                  Type type = new TypeToken<Map<String, String>>() {
+                  }.getType();
+                  String headerJson = info.getOutputData().getString(UploadWorker.EXTRA_HEADERS);
+                  if (headerJson != null) {
+                    headers = gson.fromJson(headerJson, type);
+                  }
 
-                    String response = info.getOutputData().getString(UploadWorker.EXTRA_RESPONSE);
-                    sendCompleted(id, status, response, headers);
-                    break;
-                }
+                  String response = info.getOutputData().getString(UploadWorker.EXTRA_RESPONSE);
+                  sendCompleted(id, status, response, headers);
+                  break;
               }
             }
           }
@@ -133,19 +136,25 @@ public class FlutterUploaderPlugin
 
   @Override
   public void onMethodCall(MethodCall call, Result result) {
-    if (call.method.equals("enqueue")) {
-      enqueue(call, result);
-    } else if (call.method.equals("cancel")) {
-      cancel(call, result);
-    } else if (call.method.equals("cancelAll")) {
-      cancelAll(call, result);
-    } else {
-      result.notImplemented();
+    switch (call.method) {
+      case "enqueue":
+        enqueue(call, result);
+        break;
+      case "cancel":
+        cancel(call, result);
+        break;
+      case "cancelAll":
+        cancelAll(call, result);
+        break;
+      default:
+        result.notImplemented();
+        break;
     }
   }
 
   @Override
-  public void onActivityCreated(Activity activity, Bundle savedInstanceState) {}
+  public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+  }
 
   @Override
   public void onActivityStarted(Activity activity) {
@@ -160,10 +169,12 @@ public class FlutterUploaderPlugin
   }
 
   @Override
-  public void onActivityResumed(Activity activity) {}
+  public void onActivityResumed(Activity activity) {
+  }
 
   @Override
-  public void onActivityPaused(Activity activity) {}
+  public void onActivityPaused(Activity activity) {
+  }
 
   @Override
   public void onActivityStopped(Activity activity) {
@@ -177,10 +188,12 @@ public class FlutterUploaderPlugin
   }
 
   @Override
-  public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
+  public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+  }
 
   @Override
-  public void onActivityDestroyed(Activity activity) {}
+  public void onActivityDestroyed(Activity activity) {
+  }
 
   private void enqueue(MethodCall call, MethodChannel.Result result) {
     taskIdKey++;

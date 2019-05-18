@@ -16,8 +16,11 @@ public class CountingRequestBody extends RequestBody {
   protected final CountProgressListener _listener;
   protected final String _taskId;
   protected CountingSink _countingSink;
+  final long contentLength;
 
-  public CountingRequestBody(RequestBody body, String taskId, CountProgressListener listener) {
+  public CountingRequestBody(RequestBody body, String taskId, CountProgressListener listener)
+      throws IOException {
+    contentLength = body.contentLength();
     _body = body;
     _taskId = taskId;
     _listener = listener;
@@ -30,7 +33,7 @@ public class CountingRequestBody extends RequestBody {
 
   @Override
   public long contentLength() throws IOException {
-    return _body.contentLength();
+    return contentLength;
   }
 
   @Override

@@ -49,6 +49,7 @@ import okio.Okio;
 import okio.Source;
 
 class RequestBodyUtil {
+
   public static RequestBody create(final MediaType mediaType, final InputStream inputStream) {
     return new RequestBody() {
       @Override
@@ -80,6 +81,7 @@ class RequestBodyUtil {
 }
 
 public class UploadWorker extends Worker implements CountProgressListener {
+
   public static final String UPDATE_PROCESS_EVENT =
       "com.bluechilli.flutteruploader.UPDATE_PROCESS_EVENT";
   public static final String COMPLETED_EVENT = "com.bluechilli.flutteruploader.COMPLETED_EVENT";
@@ -119,6 +121,8 @@ public class UploadWorker extends Worker implements CountProgressListener {
     super(context, workerParams);
   }
 
+  Call call;
+
   @NonNull
   @Override
   public Result doWork() {
@@ -152,8 +156,10 @@ public class UploadWorker extends Worker implements CountProgressListener {
       List<FileItem> files = new ArrayList<>();
 
       //      Map<String, String> parameters = null;
-      Type type = new TypeToken<Map<String, String>>() {}.getType();
-      Type fileItemType = new TypeToken<List<FileItem>>() {}.getType();
+      Type type = new TypeToken<Map<String, String>>() {
+      }.getType();
+      Type fileItemType = new TypeToken<List<FileItem>>() {
+      }.getType();
       //
       if (headersJson != null) {
         headers = gson.fromJson(headersJson, type);
@@ -254,7 +260,7 @@ public class UploadWorker extends Worker implements CountProgressListener {
               .readTimeout((long) timeout, TimeUnit.SECONDS)
               .build();
 
-      Call call = client.newCall(request);
+      call = client.newCall(request);
       Response response = call.execute();
       String responseString = response.body().string();
       statusCode = response.code();
@@ -373,6 +379,15 @@ public class UploadWorker extends Worker implements CountProgressListener {
     }
   }
 
+  @Override
+  public void onStopped() {
+    super.onStopped();
+
+    if (call != null) {
+      call.cancel();
+    }
+  }
+
   private String GetMimeType(String url) {
     String type = "*/*";
     String extension = MimeTypeMap.getFileExtensionFromUrl(url);
@@ -396,7 +411,9 @@ public class UploadWorker extends Worker implements CountProgressListener {
 
     requestBodyBuilder.setType(MultipartBody.FORM);
 
-    if (parameters == null) return requestBodyBuilder;
+    if (parameters == null) {
+      return requestBodyBuilder;
+    }
 
     for (String key : parameters.keySet()) {
       String parameter = parameters.get(key);
@@ -542,13 +559,13 @@ public class UploadWorker extends Worker implements CountProgressListener {
     List<String> output = new ArrayList<>();
 
     if (stacktraces == null || stacktraces.length == 0) {
-      return new String[] {};
+      return new String[]{};
     }
 
     for (StackTraceElement stacktrace : stacktraces) {
       output.add(stacktrace.toString());
     }
 
-    return output.toArray(new String[] {});
+    return output.toArray(new String[]{});
   }
 }
