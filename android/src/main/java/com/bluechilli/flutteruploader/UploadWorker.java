@@ -9,7 +9,6 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
-
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -18,11 +17,9 @@ import androidx.work.Data;
 import androidx.work.ListenableWorker.Result.Success;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.reflect.TypeToken;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -34,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import okhttp3.Call;
 import okhttp3.Headers;
 import okhttp3.MediaType;
@@ -156,10 +152,8 @@ public class UploadWorker extends Worker implements CountProgressListener {
       List<FileItem> files = new ArrayList<>();
 
       //      Map<String, String> parameters = null;
-      Type type = new TypeToken<Map<String, String>>() {
-      }.getType();
-      Type fileItemType = new TypeToken<List<FileItem>>() {
-      }.getType();
+      Type type = new TypeToken<Map<String, String>>() {}.getType();
+      Type fileItemType = new TypeToken<List<FileItem>>() {}.getType();
       //
       if (headersJson != null) {
         headers = gson.fromJson(headersJson, type);
@@ -209,8 +203,6 @@ public class UploadWorker extends Worker implements CountProgressListener {
         requestBody =
             RequestBodyUtil.create(
                 MediaType.parse(GetMimeType(item.getPath())), new FileInputStream(file));
-
-
       }
 
       if (requestBody == null) {
@@ -559,13 +551,13 @@ public class UploadWorker extends Worker implements CountProgressListener {
     List<String> output = new ArrayList<>();
 
     if (stacktraces == null || stacktraces.length == 0) {
-      return new String[]{};
+      return new String[] {};
     }
 
     for (StackTraceElement stacktrace : stacktraces) {
       output.add(stacktrace.toString());
     }
 
-    return output.toArray(new String[]{});
+    return output.toArray(new String[] {});
   }
 }

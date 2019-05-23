@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-
 import androidx.lifecycle.Observer;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.work.BackoffPolicy;
@@ -18,10 +17,14 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
+import io.flutter.app.FlutterActivity;
+import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.MethodChannel;
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
+import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.PluginRegistry.Registrar;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,22 +34,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import io.flutter.app.FlutterActivity;
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel;
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
-import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
-
-/**
- * FlutterUploaderPlugin
- */
+/** FlutterUploaderPlugin */
 public class FlutterUploaderPlugin
     implements MethodCallHandler, Application.ActivityLifecycleCallbacks {
 
-  /**
-   * Plugin registration.
-   */
+  /** Plugin registration. */
   private static final String TAG = "flutter_upload_task";
 
   private static final String CHANNEL_NAME = "flutter_uploader";
@@ -58,7 +50,7 @@ public class FlutterUploaderPlugin
   private Map<String, String> tasks = new HashMap<>();
   private Gson gson = new Gson();
   private int taskIdKey = 0;
-  private final String[] validHttpMethods = new String[]{"POST", "PUT", "PATCH"};
+  private final String[] validHttpMethods = new String[] {"POST", "PUT", "PATCH"};
 
   public static void registerWith(Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), CHANNEL_NAME);
@@ -98,8 +90,7 @@ public class FlutterUploaderPlugin
                   info.getOutputData().getInt(UploadWorker.EXTRA_STATUS, UploadStatus.COMPLETE);
               switch (info.getState()) {
                 case FAILED:
-                  int statusCode =
-                      info.getOutputData().getInt(UploadWorker.EXTRA_STATUS_CODE, 200);
+                  int statusCode = info.getOutputData().getInt(UploadWorker.EXTRA_STATUS_CODE, 200);
                   String code = info.getOutputData().getString(UploadWorker.EXTRA_ERROR_CODE);
                   String errorMessage =
                       info.getOutputData().getString(UploadWorker.EXTRA_ERROR_MESSAGE);
@@ -118,8 +109,7 @@ public class FlutterUploaderPlugin
                   break;
                 default:
                   Map<String, String> headers = null;
-                  Type type = new TypeToken<Map<String, String>>() {
-                  }.getType();
+                  Type type = new TypeToken<Map<String, String>>() {}.getType();
                   String headerJson = info.getOutputData().getString(UploadWorker.EXTRA_HEADERS);
                   if (headerJson != null) {
                     headers = gson.fromJson(headerJson, type);
@@ -153,8 +143,7 @@ public class FlutterUploaderPlugin
   }
 
   @Override
-  public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-  }
+  public void onActivityCreated(Activity activity, Bundle savedInstanceState) {}
 
   @Override
   public void onActivityStarted(Activity activity) {
@@ -169,12 +158,10 @@ public class FlutterUploaderPlugin
   }
 
   @Override
-  public void onActivityResumed(Activity activity) {
-  }
+  public void onActivityResumed(Activity activity) {}
 
   @Override
-  public void onActivityPaused(Activity activity) {
-  }
+  public void onActivityPaused(Activity activity) {}
 
   @Override
   public void onActivityStopped(Activity activity) {
@@ -188,12 +175,10 @@ public class FlutterUploaderPlugin
   }
 
   @Override
-  public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-  }
+  public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
 
   @Override
-  public void onActivityDestroyed(Activity activity) {
-  }
+  public void onActivityDestroyed(Activity activity) {}
 
   private void enqueue(MethodCall call, MethodChannel.Result result) {
     taskIdKey++;
