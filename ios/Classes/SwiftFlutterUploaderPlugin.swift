@@ -325,15 +325,15 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
 
         taskQueue.sync {
             var dataRequest = ""
-            if(parameters != nil) {
-                parameters?.forEach({ (key, value) in
-                    if let v = value as? String {
-                        dataRequest += "--\(boundary)\r\n"
-                        dataRequest += "Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
-                        dataRequest += "\(v)\r\n"
-                    }
-                })
-            }
+//            if(parameters != nil) {
+//                parameters?.forEach({ (key, value) in
+//                    if let v = value as? String {
+//                        dataRequest += "--\(boundary)\r\n"
+//                        dataRequest += "Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
+//                        dataRequest += "\(v)\r\n"
+//                    }
+//                })
+//            }
 
             let fm = FileManager.default
             let requestId = UUID().uuidString.replacingOccurrences(of: "-", with: "_")
@@ -361,7 +361,6 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
             }
 
             do {
-
                 try dataRequest.write(toFile: tempPath!.path, atomically: true, encoding: String.Encoding.utf8)
 
                 let stream = FileHandle(forWritingAtPath: tempPath!.path)
@@ -372,13 +371,13 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
                 stream?.seekToEndOfFile()
 
                 uploadItems.forEach({ info in
-                    var fileRequest = ""
-                    fileRequest += "--\(boundary)\r\n"
-                    fileRequest += "Content-Disposition: form-data; name=\"\(info.fieldname)\"; filename=\"\(info.filename)\"\r\n"
-                    fileRequest += "Content-Type: \(info.mimeType)\r\n\r\n"
-                    stream?.write(fileRequest.data(using: String.Encoding.utf8)!)
+//                    var fileRequest = ""
+//                    fileRequest += "--\(boundary)\r\n"
+//                    fileRequest += "Content-Disposition: form-data; name=\"\(info.fieldname)\"; filename=\"\(info.filename)\"\r\n"
+//                    fileRequest += "Content-Type: \(info.mimeType)\r\n\r\n"
+//                    stream?.write(fileRequest.data(using: String.Encoding.utf8)!)
 
-                    NSLog("attaching the file: \(info.path) - tempPath:\(info.temporalFilePath?.path ?? "na")")
+//                    NSLog("attaching the file: \(info.path) - tempPath:\(info.temporalFilePath?.path ?? "na")")
 
                     if info.temporalFilePath != nil && fm.fileExists(atPath: info.temporalFilePath!.path) {
                         stream?.write(fm.contents(atPath: info.temporalFilePath!.path)!)
@@ -386,7 +385,7 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
                          stream?.write(fm.contents(atPath: info.path)!)
                     }
 
-                    stream?.write("\r\n".data(using: String.Encoding.utf8)!)
+//                    stream?.write("\r\n".data(using: String.Encoding.utf8)!)
 
                     if info.temporalFilePath != nil {
                         do {
@@ -396,7 +395,7 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
                         }
                     }
 
-                    stream?.write("\r\n--\(boundary)--\r\n".data(using: String.Encoding.utf8)!)
+//                    stream?.write("\r\n--\(boundary)--\r\n".data(using: String.Encoding.utf8)!)
                 })
 
                 stream?.closeFile()
@@ -415,7 +414,7 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
         let request = NSMutableURLRequest(url: url)
         request.httpMethod = method
         request.addValue("*/*", forHTTPHeaderField: "Accept")
-        request.addValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+//        request.addValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
         if headers != nil {
             headers!.forEach { (key, value) in

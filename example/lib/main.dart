@@ -8,8 +8,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 const String title = "FileUpload Sample app";
-const String uploadURL =
-    "https://us-central1-flutteruploader.cloudfunctions.net/upload";
+// const String uploadURL =
+//     "https://us-central1-flutteruploader.cloudfunctions.net/upload";
+
 
 void main() => runApp(App());
 
