@@ -11,15 +11,15 @@
        additional functionality it is fine to subclass or reimplement
        FlutterApplication and put your custom class here. -->
   <application
-    android:icon="@mipmap/ic_launcher"
+    android:name="io.flutter.app.FlutterApplication"
     android:label="flutter_uploader_example"
-    android:name="io.flutter.app.FlutterApplication">
+    android:icon="@mipmap/ic_launcher">
     <activity
+      android:name=".MainActivity"
+      android:launchMode="singleTop"
+      android:theme="@style/LaunchTheme"
       android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
       android:hardwareAccelerated="true"
-      android:launchMode="singleTop"
-      android:name=".MainActivity"
-      android:theme="@style/LaunchTheme"
       android:windowSoftInputMode="adjustResize">
       <!-- This keeps the window background of the activity showing
            until Flutter renders its first frame. It can be removed if
@@ -35,15 +35,15 @@
     </activity>
 
     <provider
+      android:name="androidx.work.impl.WorkManagerInitializer"
       android:authorities="${applicationId}.workmanager-init"
       android:enabled="false"
-      android:exported="false"
-      android:name="androidx.work.impl.WorkManagerInitializer"/>
+      android:exported="false"/>
 
     <provider
+      android:name="com.bluechilli.flutteruploader.FlutterUploaderInitializer"
       android:authorities="${applicationId}.flutter-uploader-init"
-      android:exported="false"
-      android:name="com.bluechilli.flutteruploader.FlutterUploaderInitializer">
+      android:exported="false">
       <meta-data
         android:name="com.bluechilli.flutteruploader.MAX_CONCURRENT_TASKS"
         android:value="5"/>

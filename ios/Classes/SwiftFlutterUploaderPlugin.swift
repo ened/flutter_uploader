@@ -55,7 +55,6 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
             let mime = MimeType(url: URL(fileURLWithPath: path))
             self.mimeType = mime.value
         }
-
     }
 
     var channel: FlutterMethodChannel
@@ -69,39 +68,39 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
     var backgroundTransferCompletionHander: Any?
     var uploadedData = [String: Data]()
 
-  public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "flutter_uploader", binaryMessenger: registrar.messenger())
-    let instance = SwiftFlutterUploaderPlugin(channel: channel)
-    registrar.addMethodCallDelegate(instance, channel: channel)
-    registrar.addApplicationDelegate(instance)
-  }
-
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    NSLog("methodCallHandler: \(call.method)")
-    switch call.method {
-    case "enqueue":
-        enqueueMethodCall (call, result)
-        break
-    case "cancel":
-        cancelMethodCall(call, result)
-        break
-    case "cancelAll":
-        cancelAllMethodCall(call, result)
-        break
-    default:
-        result(FlutterMethodNotImplemented)
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(name: "flutter_uploader", binaryMessenger: registrar.messenger())
+        let instance = SwiftFlutterUploaderPlugin(channel: channel)
+        registrar.addMethodCallDelegate(instance, channel: channel)
+        registrar.addApplicationDelegate(instance)
     }
-  }
 
-  init(channel: FlutterMethodChannel) {
-    self.channel = channel
-    self.queue = OperationQueue()
-    self.queue.name = "chillisource.flutter_uploader.queue"
-    self.session = URLSession()
-    self.taskQueue = DispatchQueue(label: "chillisource.flutter_uploader.dispatch.queue")
-    super.init()
-    self.setupSession()
-  }
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        NSLog("methodCallHandler: \(call.method)")
+        switch call.method {
+        case "enqueue":
+            enqueueMethodCall (call, result)
+            break
+        case "cancel":
+            cancelMethodCall(call, result)
+            break
+        case "cancelAll":
+            cancelAllMethodCall(call, result)
+            break
+        default:
+            result(FlutterMethodNotImplemented)
+        }
+    }
+
+    init(channel: FlutterMethodChannel) {
+        self.channel = channel
+        self.queue = OperationQueue()
+        self.queue.name = "chillisource.flutter_uploader.queue"
+        self.session = URLSession()
+        self.taskQueue = DispatchQueue(label: "chillisource.flutter_uploader.dispatch.queue")
+        super.init()
+        self.setupSession()
+    }
 
     private func setupSession() {
 
@@ -135,7 +134,7 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
 
         NSLog("TIMEOUT = \(timeout!)")
 
-         if let message = mainBundle.object(forInfoDictionaryKey: KEY_ALL_FILES_UPLOADED_MESSAGE) {
+        if let message = mainBundle.object(forInfoDictionaryKey: KEY_ALL_FILES_UPLOADED_MESSAGE) {
             allFileUploadedMessage = message as! String
         }
 
@@ -150,7 +149,7 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
         NSLog("init NSURLSession with id: %@", session.configuration.identifier!)
         let boundaryId = UUID().uuidString.replacingOccurrences(of: "-", with: "")
         self.boundary = "---------------------------------\(boundaryId)"
-   }
+    }
 
     private func enqueueMethodCall(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         let args = call.arguments as! Dictionary<String, Any?>
@@ -193,15 +192,15 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
     }
 
     private func cancelMethodCall(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-      let args = call.arguments as! Dictionary<String, Any?>
-      let taskId = args[KEY_TASK_ID] as! String
-      self.cancelWithTaskId(taskId)
-      result(nil)
+        let args = call.arguments as! Dictionary<String, Any?>
+        let taskId = args[KEY_TASK_ID] as! String
+        self.cancelWithTaskId(taskId)
+        result(nil)
     }
 
     private func cancelAllMethodCall(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-      self.cancelAllTasks()
-      result(nil)
+        self.cancelAllTasks()
+        result(nil)
     }
 
     private func cancelWithTaskId(_ taskId: String) {
@@ -210,9 +209,9 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
                 let state = uploadTask.state
                 let taskIdValue = self.identifierForTask(uploadTask)
                 if taskIdValue == taskId && state == .running {
-                   uploadTask.cancel()
-                   self.sendUpdateProgressForTaskId(taskId, inStatus: .canceled, andProgress: -1, andTag: nil)
-                   return
+                    uploadTask.cancel()
+                    self.sendUpdateProgressForTaskId(taskId, inStatus: .canceled, andProgress: -1, andTag: nil)
+                    return
                 }
             })
         }
@@ -236,15 +235,15 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
     }
 
     private func identifierForTask(_ task: URLSessionUploadTask, withSession session: URLSession) -> String {
-         return "\(session.configuration.identifier ?? "chillisoure.flutter_uploader").\(task.taskIdentifier)"
+        return "\(session.configuration.identifier ?? "chillisoure.flutter_uploader").\(task.taskIdentifier)"
     }
 
     private func uploadTaskWithURLWithCompletion(url: URL, files: Array<Any>,
-                                   method: String,
-                                   headers: Dictionary<String, Any?>?,
-                                   parameters data: Dictionary<String, Any?>?,
-                                   tag: String?,
-                                   completion completionHandler:@escaping (URLSessionUploadTask?, FlutterError?) -> Void) {
+                                                 method: String,
+                                                 headers: Dictionary<String, Any?>?,
+                                                 parameters data: Dictionary<String, Any?>?,
+                                                 tag: String?,
+                                                 completion completionHandler:@escaping (URLSessionUploadTask?, FlutterError?) -> Void) {
 
         var itemsToUpload = Array<UploadFileInfo>()
         var flutterError: FlutterError?
@@ -260,36 +259,50 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
             }
         }
 
+        var fileCount:Int = 0;
+        
         for file in files {
             let f = file as! Dictionary<String, Any>
             let filename = f[KEY_FILE_NAME] as! String
             let fieldname = f[KEY_FIELD_NAME] as! String
             let savedDir = f[KEY_SAVED_DIR] as! String
             let info = UploadFileInfo(fieldname: fieldname, filename: filename, savedDir: savedDir)
+            var isDir: ObjCBool = false
 
-            if !FileManager.default.fileExists(atPath: info.path) {
-                 flutterError = FlutterError(code: "io_error", message: "file at path \(info.path) doesn't exists", details: nil)
-                break
-            } else {
-                let fileId = UUID().uuidString.replacingOccurrences(of: "-", with: "_")
-                let ext = NSURL(fileURLWithPath: info.path).pathExtension!
-                let filename = "\(fileId).\(ext)"
-                let tempPath = tempDir?.appendingPathComponent("\(filename)", isDirectory: false)
-                do {
-                    try fm.copyItem(at: URL(fileURLWithPath: info.path), to: tempPath!)
-                    let fileInfo = UploadFileInfo(fieldname: info.fieldname, filename: info.filename, savedDir: info.savedDir, temporalFilePath: tempPath)
-                    itemsToUpload.append(fileInfo)
-                    NSLog("File: \(fileInfo.temporalFilePath) with mimeType: \(fileInfo.mimeType)")
-                } catch {
-                    NSLog("Failed to copy the file: \(info.path) to tempFile: \(tempPath!)")
+            let fm = FileManager.default
+            if fm.fileExists(atPath: info.path, isDirectory:&isDir) {
+                if !isDir.boolValue {
+                    fileCount += 1
+                    let fileId = UUID().uuidString.replacingOccurrences(of: "-", with: "_")
+                    let ext = NSURL(fileURLWithPath: info.path).pathExtension!
+                    let filename = "\(fileId).\(ext)"
+                    let tempPath = tempDir?.appendingPathComponent("\(filename)", isDirectory: false)
+                    do {
+                        try fm.copyItem(at: URL(fileURLWithPath: info.path), to: tempPath!)
+                        let fileInfo = UploadFileInfo(fieldname: info.fieldname, filename: info.filename, savedDir: info.savedDir, temporalFilePath: tempPath)
+                        itemsToUpload.append(fileInfo)
+                        
+                        if let temporalFilePath = fileInfo.temporalFilePath {
+                            NSLog("File: \(temporalFilePath) with mimeType: \(fileInfo.mimeType)")
+                        }
+                    } catch {
+                        fileCount -= 1;
+                        NSLog("Failed to copy the file: \(info.path) to tempFile: \(tempPath!)")
+                    }
                 }
+                else {
+                    flutterError = FlutterError(code: "io_error", message: "path \(info.path) is a directory. please provide valid file path", details: nil);
+                }
+            }
+            else {
+                flutterError = FlutterError(code: "io_error", message: "file at path \(info.path) doesn't exists", details: nil);
             }
         }
 
         let tout: Int = Int(self.timeout!)
 
-        if flutterError != nil {
-           completionHandler(nil, flutterError!)
+        if fileCount <= 0 {
+            completionHandler(nil, flutterError)
         } else {
             saveToFileWithCompletion(itemsToUpload, data, boundary, completion: {
                 [weak self] (path, error) in
@@ -305,19 +318,38 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
                 })
             })
         }
-
     }
 
     private func sendUpdateProgressForTaskId(_ taskId: String, inStatus status: UploadTaskStatus, andProgress progress: Int, andTag tag: String?) {
-        self.channel.invokeMethod("updateProgress", arguments: [KEY_TASK_ID: taskId, KEY_STATUS: NSNumber(integerLiteral: status.rawValue), KEY_PROGRESS: NSNumber(integerLiteral: progress), "tag": tag])
+        self.channel.invokeMethod("updateProgress", arguments: [
+            KEY_TASK_ID: taskId,
+            KEY_STATUS: NSNumber(integerLiteral: status.rawValue),
+            KEY_PROGRESS: NSNumber(integerLiteral: progress),
+            "tag": (tag ?? NSNull()) as Any
+            ])
     }
 
     private func sendUploadFailedForTaskId(_ taskId: String, inStatus status: UploadTaskStatus, statusCode: Int, error: FlutterError, tag: String?) {
-        self.channel.invokeMethod("uploadFailed", arguments: [KEY_TASK_ID: taskId, KEY_STATUS: NSNumber(integerLiteral: status.rawValue), "code": error.code, "message": error.message, "details": error.details, "statusCode": NSNumber(integerLiteral: statusCode), "tag": tag])
+        self.channel.invokeMethod("uploadFailed", arguments: [
+            KEY_TASK_ID: taskId,
+            KEY_STATUS: NSNumber(integerLiteral: status.rawValue),
+            "code": error.code,
+            "message": error.message ?? NSNull(),
+            "details": error.details ?? NSNull(),
+            "statusCode": NSNumber(integerLiteral: statusCode),
+            "tag": tag as Any
+            ])
     }
 
     private func sendUploadSuccessForTaskId(_ taskId: String, inStatus status: UploadTaskStatus, message: String?, statusCode: Int, headers: [String: Any], tag: String?) {
-        self.channel.invokeMethod("uploadCompleted", arguments: [KEY_TASK_ID: taskId, KEY_STATUS: NSNumber(integerLiteral: status.rawValue), "message": message, "statusCode": statusCode, "headers": headers, "tag": tag])
+        self.channel.invokeMethod("uploadCompleted", arguments: [
+            KEY_TASK_ID: taskId,
+            KEY_STATUS: NSNumber(integerLiteral: status.rawValue),
+            "message": message ?? NSNull(),
+            "statusCode": statusCode,
+            "headers": headers,
+            "tag": tag ?? NSNull()
+            ])
     }
 
     private func saveToFileWithCompletion(_ uploadItems: Array<UploadFileInfo>, _ parameters: Dictionary<String, Any?>?, _ boundary: String,
@@ -455,10 +487,10 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
             var uploadStatus: UploadTaskStatus = .failed
             switch error! {
             case URLError.cancelled:
-                 uploadStatus = .canceled
+                uploadStatus = .canceled
                 break
             default:
-                 uploadStatus = .failed
+                uploadStatus = .failed
                 break
             }
 
@@ -524,10 +556,10 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
             NSLog("URLSessionDidCompleteWithError: response: \(message), task: \(getTaskStatusText(uploadTask.state))")
             self.sendUploadSuccessForTaskId(taskId, inStatus: .completed, message: message, statusCode: response?.statusCode ?? 200, headers: responseHeaders, tag: tag)
         } else if hasResponseError {
-            NSLog("URLSessionDidCompleteWithError: task: \(getTaskStatusText(uploadTask.state)) statusCode: \(response?.statusCode), error:\(message), response:\(response)")
+            NSLog("URLSessionDidCompleteWithError: task: \(getTaskStatusText(uploadTask.state)) statusCode: \(response?.statusCode ?? -1), error:\(message), response:\(String(describing: response))")
             self.sendUploadFailedForTaskId(taskId, inStatus: .failed, statusCode: statusCode, error: FlutterError(code: "upload_error", message: message, details: Thread.callStackSymbols), tag: tag)
         } else {
-            NSLog("URLSessionDidCompleteWithError: task: \(getTaskStatusText(uploadTask.state)) statusCode: \(response?.statusCode), error:\(error?.localizedDescription)")
+            NSLog("URLSessionDidCompleteWithError: task: \(getTaskStatusText(uploadTask.state)) statusCode: \(response?.statusCode ?? -1), error:\(error?.localizedDescription ?? "none")")
             self.sendUploadFailedForTaskId(taskId, inStatus: .failed, statusCode: statusCode, error: FlutterError(code: "upload_error", message: error?.localizedDescription, details: Thread.callStackSymbols), tag: tag)
         }
     }
@@ -535,7 +567,7 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
     private func getTaskStatusText(_ state: URLSessionTask.State) -> String {
         switch(state) {
         case .running:
-           return "running"
+            return "running"
         case .canceling:
             return "canceling"
         case .completed:
@@ -549,20 +581,20 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
     }
 
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-         NSLog("URLSessionDidReceiveData:")
+        NSLog("URLSessionDidReceiveData:")
 
         guard let uploadTask = dataTask as? URLSessionUploadTask else {
             NSLog("URLSessionDidReceiveData: not an uplaod task")
             return
         }
-         let taskId = identifierForTask(uploadTask, withSession: session)
+        let taskId = identifierForTask(uploadTask, withSession: session)
 
         if uploadedData.contains(where: { (key, _) in
             return key == taskId
         }) {
             NSLog("URLSessionDidReceiveData: existing data with \(taskId)")
             if data.count > 0 {
-               self.uploadedData[taskId]?.append(data)
+                self.uploadedData[taskId]?.append(data)
             }
         } else {
             var udata = Data()
@@ -580,7 +612,7 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
     }
 
     public func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
-         NSLog("URLSessionDidBecomeInvalidWithError:")
+        NSLog("URLSessionDidBecomeInvalidWithError:")
     }
 
     public func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask) {
@@ -590,7 +622,7 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
     public func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
 
         if totalBytesExpectedToSend == NSURLSessionTransferSizeUnknown {
-             NSLog("Unknown transfer size")
+            NSLog("Unknown transfer size")
         } else {
             guard let uploadTask = task as? URLSessionUploadTask else {
                 NSLog("URLSessionDidSendBodyData: an not uplaod task")

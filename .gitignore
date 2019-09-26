@@ -7,3 +7,7 @@
 build/
 
 node_modules/
+
+pubspec.lock
+Podfile.lock
+.firebaserc
