@@ -45,7 +45,6 @@ public class FlutterUploaderPlugin
   private Map<String, Boolean> completedTasks = new HashMap<>();
   private Map<String, String> tasks = new HashMap<>();
   private Gson gson = new Gson();
-  private int taskIdKey = 0;
   private final String[] validHttpMethods = new String[] {"POST", "PUT", "PATCH"};
 
   public static void registerWith(Registrar registrar) {
@@ -219,13 +218,11 @@ public class FlutterUploaderPlugin
   }
 
   private void enqueue(MethodCall call, MethodChannel.Result result) {
-    taskIdKey++;
     String url = call.argument("url");
     String method = call.argument("method");
     List<Map<String, String>> files = call.argument("files");
     Map<String, String> parameters = call.argument("data");
     Map<String, String> headers = call.argument("headers");
-    boolean showNotification = call.argument("show_notification");
     String tag = call.argument("tag");
 
     List<String> methods = Arrays.asList(validHttpMethods);
@@ -247,16 +244,7 @@ public class FlutterUploaderPlugin
 
     WorkRequest request =
         buildRequest(
-            new UploadTask(
-                taskIdKey,
-                url,
-                method,
-                items,
-                headers,
-                parameters,
-                connectionTimeout,
-                showNotification,
-                tag));
+            new UploadTask(url, method, items, headers, parameters, connectionTimeout, tag));
     WorkManager.getInstance(register.context()).enqueue(request);
     String taskId = request.getId().toString();
     if (!tasks.containsKey(taskId)) {
@@ -286,9 +274,7 @@ public class FlutterUploaderPlugin
             .putString(UploadWorker.ARG_URL, task.getURL())
             .putString(UploadWorker.ARG_METHOD, task.getMethod())
             .putInt(UploadWorker.ARG_REQUEST_TIMEOUT, task.getTimeout())
-            .putBoolean(UploadWorker.ARG_SHOW_NOTIFICATION, task.canShowNotification())
-            .putString(UploadWorker.ARG_UPLOAD_REQUEST_TAG, task.getTag())
-            .putInt(UploadWorker.ARG_ID, task.getId());
+            .putString(UploadWorker.ARG_UPLOAD_REQUEST_TAG, task.getTag());
 
     List<FileItem> files = task.getFiles();
 
@@ -305,18 +291,16 @@ public class FlutterUploaderPlugin
       dataBuilder.putString(UploadWorker.ARG_DATA, parametersJson);
     }
 
-    WorkRequest request =
-        new OneTimeWorkRequest.Builder(UploadWorker.class)
-            .setConstraints(
-                new Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .setRequiresStorageNotLow(true)
-                    .build())
-            .addTag(TAG)
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 5, TimeUnit.SECONDS)
-            .setInputData(dataBuilder.build())
-            .build();
-    return request;
+    return new OneTimeWorkRequest.Builder(UploadWorker.class)
+        .setConstraints(
+            new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiresStorageNotLow(true)
+                .build())
+        .addTag(TAG)
+        .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 5, TimeUnit.SECONDS)
+        .setInputData(dataBuilder.build())
+        .build();
   }
 
   private void sendUpdateProgress(String id, int status, int progress) {

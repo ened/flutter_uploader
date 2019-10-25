@@ -211,9 +211,6 @@ class FlutterUploader {
   /// * `method`: HTTP method to use for upload (POST,PUT,PATCH)
   /// * `headers`: HTTP headers
   /// * `data`: additional data to be uploaded together with file
-  /// * `showNotification`: sets `true` to show a notification displaying
-  /// upload progress and success or failure of upload task (Android only), otherwise will disable
-  /// this feature. The default value is `false`
   /// * `tag`: name of the upload request (only used on Android)
   /// **return:**
   ///
@@ -225,7 +222,6 @@ class FlutterUploader {
     UploadMethod method = UploadMethod.POST,
     Map<String, String> headers,
     Map<String, String> data,
-    bool showNotification = false,
     String tag,
   }) async {
     assert(method != null);
@@ -241,7 +237,6 @@ class FlutterUploader {
         'files': f,
         'headers': headers,
         'data': data,
-        'show_notification': showNotification,
         'tag': tag
       });
       print('Uplaod task is enqueued with id($taskId)');

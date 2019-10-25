@@ -1,17 +1,10 @@
 package com.bluechilli.flutteruploader;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.res.Resources;
-import android.os.Build;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 import android.webkit.URLUtil;
 import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.work.Data;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
@@ -43,9 +36,7 @@ public class UploadWorker extends Worker implements CountProgressListener {
   public static final String ARG_DATA = "data";
   public static final String ARG_FILES = "files";
   public static final String ARG_REQUEST_TIMEOUT = "requestTimeout";
-  public static final String ARG_SHOW_NOTIFICATION = "showNotification";
   public static final String ARG_UPLOAD_REQUEST_TAG = "tag";
-  public static final String ARG_ID = "primaryId";
   public static final String EXTRA_STATUS_CODE = "statusCode";
   public static final String EXTRA_STATUS = "status";
   public static final String EXTRA_ERROR_MESSAGE = "errorMessage";
@@ -55,17 +46,12 @@ public class UploadWorker extends Worker implements CountProgressListener {
   public static final String EXTRA_ID = "id";
   public static final String EXTRA_HEADERS = "headers";
   private static final String TAG = UploadWorker.class.getSimpleName();
-  private static final String CHANNEL_ID = "FLUTTER_UPLOADER_NOTIFICATION";
   private static final int UPDATE_STEP = 0;
   private static final int DEFAULT_ERROR_STATUS_CODE = 500;
 
-  private NotificationCompat.Builder builder;
-  private boolean showNotification;
-  private String msgStarted, msgInProgress, msgCanceled, msgFailed, msgComplete;
   private int lastProgress = 0;
-  private int lastNotificationProgress = 0;
+
   private String tag;
-  private int primaryId;
   private Call call;
   private boolean isCancelled = false;
 
@@ -81,24 +67,16 @@ public class UploadWorker extends Worker implements CountProgressListener {
     String url = getInputData().getString(ARG_URL);
     String method = getInputData().getString(ARG_METHOD);
     int timeout = getInputData().getInt(ARG_REQUEST_TIMEOUT, 3600);
-    showNotification = getInputData().getBoolean(ARG_SHOW_NOTIFICATION, false);
     String headersJson = getInputData().getString(ARG_HEADERS);
     String parametersJson = getInputData().getString(ARG_DATA);
     String filesJson = getInputData().getString(ARG_FILES);
     tag = getInputData().getString(ARG_UPLOAD_REQUEST_TAG);
-    primaryId = getInputData().getInt(ARG_ID, 0);
 
     if (tag == null) {
       tag = getId().toString();
     }
 
     int statusCode = 200;
-    Resources res = getApplicationContext().getResources();
-    msgStarted = res.getString(R.string.flutter_uploader_notification_started);
-    msgInProgress = res.getString(R.string.flutter_uploader_notification_in_progress);
-    msgCanceled = res.getString(R.string.flutter_uploader_notification_canceled);
-    msgFailed = res.getString(R.string.flutter_uploader_notification_failed);
-    msgComplete = res.getString(R.string.flutter_uploader_notification_complete);
 
     try {
       Map<String, String> headers = null;
@@ -192,8 +170,6 @@ public class UploadWorker extends Worker implements CountProgressListener {
           break;
       }
 
-      buildNotification(getApplicationContext());
-
       Log.d(TAG, "Start uploading for " + tag);
 
       OkHttpClient client =
@@ -232,9 +208,6 @@ public class UploadWorker extends Worker implements CountProgressListener {
       Log.d(TAG, "Response header: " + responseHeaders);
 
       if (!response.isSuccessful()) {
-        if (showNotification) {
-          updateNotification(context, tag, UploadStatus.FAILED, 0, null);
-        }
         return Result.failure(
             createOutputErrorData(
                 UploadStatus.FAILED,
@@ -257,10 +230,6 @@ public class UploadWorker extends Worker implements CountProgressListener {
 
       Data outputData = builder.build();
 
-      if (showNotification) {
-        updateNotification(context, tag, UploadStatus.COMPLETE, 0, null);
-      }
-
       return Result.success(outputData);
 
     } catch (JsonIOException ex) {
@@ -282,10 +251,6 @@ public class UploadWorker extends Worker implements CountProgressListener {
 
     int finalStatus = isCancelled ? UploadStatus.CANCELED : UploadStatus.FAILED;
     String finalCode = isCancelled ? "upload_cancelled" : code;
-
-    if (showNotification) {
-      updateNotification(context, tag, finalStatus, 0, null);
-    }
 
     return Result.failure(
         createOutputErrorData(
@@ -365,14 +330,8 @@ public class UploadWorker extends Worker implements CountProgressListener {
             + ", lastProgress: "
             + lastProgress);
     if (running) {
-
       Context context = getApplicationContext();
       sendUpdateProcessEvent(context, UploadStatus.RUNNING, progress);
-      boolean shouldSendNotification = isRunning(progress, lastNotificationProgress, 10);
-      if (showNotification && shouldSendNotification) {
-        updateNotification(context, tag, UploadStatus.RUNNING, progress, null);
-        lastNotificationProgress = progress;
-      }
 
       lastProgress = progress;
     }
@@ -403,67 +362,6 @@ public class UploadWorker extends Worker implements CountProgressListener {
             + ", error: "
             + message);
     sendUpdateProcessEvent(getApplicationContext(), UploadStatus.FAILED, -1);
-  }
-
-  private void buildNotification(Context context) {
-    // Make a channel if necessary
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      // Create the NotificationChannel, but only on API 26+ because
-      // the NotificationChannel class is new and not in the support library
-
-      CharSequence name = context.getApplicationInfo().loadLabel(context.getPackageManager());
-      int importance = NotificationManager.IMPORTANCE_DEFAULT;
-      NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-      channel.setSound(null, null);
-
-      // Add the channel
-      NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-
-      if (notificationManager != null) {
-        notificationManager.createNotificationChannel(channel);
-      }
-    }
-
-    // Create the notification
-    builder =
-        new NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_upload)
-            .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-  }
-
-  private void updateNotification(
-      Context context, String title, int status, int progress, PendingIntent intent) {
-    builder.setContentTitle(title);
-    builder.setContentIntent(intent);
-
-    boolean shouldUpdate = false;
-
-    if (status == UploadStatus.RUNNING) {
-      shouldUpdate = true;
-      builder.setOngoing(true);
-      builder
-          .setContentText(progress == 0 ? msgStarted : msgInProgress)
-          .setProgress(100, progress, progress == 0);
-    } else if (status == UploadStatus.CANCELED) {
-      shouldUpdate = true;
-      builder.setOngoing(false);
-      builder.setContentText(msgCanceled).setProgress(0, 0, false);
-    } else if (status == UploadStatus.FAILED) {
-      shouldUpdate = true;
-      builder.setOngoing(false);
-      builder.setContentText(msgFailed).setProgress(0, 0, false);
-    } else if (status == UploadStatus.COMPLETE) {
-      shouldUpdate = true;
-      builder.setOngoing(false);
-      builder.setContentText(msgComplete).setProgress(0, 0, false);
-    }
-
-    // Show the notification
-    if (showNotification && shouldUpdate) {
-      NotificationManagerCompat.from(context)
-          .notify(getId().toString(), primaryId, builder.build());
-    }
   }
 
   private boolean isRunning(int currentProgress, int previousProgress, int step) {

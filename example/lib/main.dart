@@ -1,15 +1,16 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'package:path/path.dart';
 import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 const String title = "FileUpload Sample app";
 const String uploadURL =
-    "https://us-central1-flutteruploader.cloudfunctions.net/upload";
+//    "https://us-central1-flutteruploader.cloudfunctions.net/upload";
+    "https://us-central1-flutteruploadertest.cloudfunctions.net/upload";
 
 void main() => runApp(App());
 
@@ -25,20 +26,12 @@ class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: title,
-        theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // Try running your application with "flutter run". You'll see the
-          // application has a blue toolbar. Then, without quitting the app, try
-          // changing the primarySwatch below to Colors.green and then invoke
-          // "hot reload" (press "r" in the console where you ran "flutter run",
-          // or simply save your changes to "hot reload" in a Flutter IDE).
-          // Notice that the counter didn't reset back to zero; the application
-          // is not restarted.
-          primarySwatch: Colors.blue,
-        ),
-        home: UploadScreen());
+      title: title,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: UploadScreen(),
+    );
   }
 }
 
@@ -48,6 +41,7 @@ class UploadItem {
   final MediaType type;
   final int progress;
   final UploadTaskStatus status;
+
   UploadItem({
     this.id,
     this.tag,
@@ -201,7 +195,6 @@ class _UploadScreenState extends State<UploadScreen> {
         ],
         method: UploadMethod.POST,
         tag: tag,
-        showNotification: true,
       );
 
       setState(() {
@@ -237,7 +230,6 @@ class _UploadScreenState extends State<UploadScreen> {
         ],
         method: UploadMethod.POST,
         tag: tag,
-        showNotification: true,
       );
 
       setState(() {

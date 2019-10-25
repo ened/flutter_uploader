@@ -14,28 +14,22 @@ public class UploadTask {
   private Map<String, String> _data = new HashMap<>();
   private List<FileItem> _files = new ArrayList<>();
   private int _requestTimeoutInSeconds = 3600;
-  private boolean _showNotification = false;
   private String _tag;
-  private int _id;
 
   public UploadTask(
-      int id,
       String url,
       String method,
       List<FileItem> files,
       Map<String, String> headers,
       Map<String, String> data,
       int requestTimeoutInSeconds,
-      boolean showNotification,
       String tag) {
-    _id = id;
     _url = url;
     _method = method;
     _files = files;
     _headers = headers;
     _data = data;
     _requestTimeoutInSeconds = requestTimeoutInSeconds;
-    _showNotification = showNotification;
     _tag = tag;
   }
 
@@ -67,15 +61,7 @@ public class UploadTask {
     return _requestTimeoutInSeconds;
   }
 
-  public boolean canShowNotification() {
-    return _showNotification;
-  }
-
   public String getTag() {
     return _tag;
-  }
-
-  public int getId() {
-    return _id;
   }
 }
