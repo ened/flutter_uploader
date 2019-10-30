@@ -18,52 +18,13 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
 
     static let DEFAULT_TIMEOUT = 3600.0
 
-    enum UploadTaskStatus: Int {
-        case undefined = 0, enqueue, running, completed, failed, canceled, paused
-    }
-
     let uploadFileSuffix = "--multi-part"
-
-    struct UploadTask {
-        var taskId: String
-        var status: UploadTaskStatus
-        var progress: Int
-        var tag: String?
-
-        init(taskId: String, status: UploadTaskStatus, progress: Int, tag: String?) {
-            self.taskId = taskId
-            self.status = status
-            self.progress = progress
-            self.tag = tag
-        }
-
-    }
-
-    struct UploadFileInfo {
-
-        var fieldname: String
-        var filename: String
-        var savedDir: String
-        var mimeType: String
-        var path: String
-        var temporalFilePath: URL?
-
-        init(fieldname: String, filename: String, savedDir: String, temporalFilePath: URL? = nil) {
-            self.fieldname = fieldname
-            self.filename = filename
-            self.savedDir = savedDir
-            self.path = "\(savedDir)/\(filename)"
-            self.temporalFilePath = temporalFilePath
-            let mime = MimeType(url: URL(fileURLWithPath: path))
-            self.mimeType = mime.value
-        }
-    }
 
     var channel: FlutterMethodChannel
     var session: URLSession
     var queue: OperationQueue
     var taskQueue: DispatchQueue
-    var runningTaskById = [String: UploadTask]()
+    var runningTaskById = UploadTaskCache()
     var boundary: String = ""
     let timeout: Double
     var allFileUploadedMessage = "All files have been uploaded"
@@ -703,7 +664,6 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
     }
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
-
         if totalBytesExpectedToSend == NSURLSessionTransferSizeUnknown {
             NSLog("Unknown transfer size")
         } else {
@@ -715,20 +675,20 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
             let taskId = identifierForTask(uploadTask, withSession: session)
             let bytesExpectedToSend = Double(integerLiteral: totalBytesExpectedToSend)
             let tBytesSent = Double(integerLiteral: totalBytesSent)
-            let progress = round(Double(tBytesSent / bytesExpectedToSend * 100))
+            let progress = Int(round(Double(tBytesSent / bytesExpectedToSend * 100)))
             let runningTask = self.runningTaskById[taskId]
             NSLog("URLSessionDidSendBodyData: taskId: \(taskId), byteSent: \(bytesSent), totalBytesSent: \(totalBytesSent), totalBytesExpectedToSend: \(totalBytesExpectedToSend), progress:\(progress)")
 
-            if runningTask != nil {
+            if let runningTask = runningTask {
                 let isRunning: (Int, Int, Int) -> Bool = {
                     (current, previous, step) in
                     let prev = previous + step
                     return (current == 0 || current > prev || current >= 100) &&  current != previous
                 }
 
-                if isRunning(Int(progress), runningTask!.progress, STEP_UPDATE) {
-                    self.sendUpdateProgressForTaskId(taskId, inStatus: .running, andProgress: Int(progress), andTag: runningTask?.tag)
-                    self.runningTaskById[taskId] = UploadTask(taskId: taskId, status: .running, progress: Int(progress), tag: runningTask?.tag)
+                if isRunning(progress, runningTask.progress, STEP_UPDATE) {
+                    self.sendUpdateProgressForTaskId(taskId, inStatus: .running, andProgress: progress, andTag: runningTask.tag)
+                    self.runningTaskById[taskId] = UploadTask(taskId: taskId, status: .running, progress: progress, tag: runningTask.tag)
                 }
             }
         }
@@ -779,5 +739,4 @@ public class SwiftFlutterUploaderPlugin: NSObject, FlutterPlugin, URLSessionTask
             return SwiftFlutterUploaderPlugin.DEFAULT_TIMEOUT
         }
     }
-    
 }
