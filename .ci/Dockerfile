@@ -1,3 +1,7 @@
+FROM norionomura/swiftlint
+
+COPY --from=norionomura/swiftlint / /
+
 FROM cirrusci/flutter:stable
 
 RUN yes | sdkmanager \
@@ -8,4 +12,3 @@ RUN yes | sdkmanager \
 
 RUN yes | sdkmanager --licenses
 
-FROM norionomura/swiftlint
