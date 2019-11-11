@@ -41,3 +41,4 @@ build/
 .project
 .classpath
 .settings
+example/ios/Flutter/Flutter.podspec

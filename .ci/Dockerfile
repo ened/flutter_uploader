@@ -1,4 +1,5 @@
 FROM cirrusci/flutter:stable
+FROM norionomura/swiftlint
 
 RUN yes | sdkmanager \
     "platforms;android-28" \
