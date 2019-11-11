@@ -1,5 +1,4 @@
 FROM cirrusci/flutter:stable
-FROM norionomura/swiftlint
 
 RUN yes | sdkmanager \
     "platforms;android-28" \
@@ -8,3 +7,5 @@ RUN yes | sdkmanager \
     "extras;android;m2repository"
 
 RUN yes | sdkmanager --licenses
+
+FROM norionomura/swiftlint
