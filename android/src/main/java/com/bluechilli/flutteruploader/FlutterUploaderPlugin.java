@@ -388,7 +388,7 @@ public class FlutterUploaderPlugin
     channel.invokeMethod("uploadFailed", args);
   }
 
-  private void sendCompleted(String id, int status, String response, Map headers) {
+  private void sendCompleted(String id, int status, String response, Map<String, String> headers) {
     String tag = tasks.get(id);
     Map<String, Object> args = new HashMap<>();
     args.put("task_id", id);

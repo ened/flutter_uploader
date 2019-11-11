@@ -15,9 +15,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.work.Data;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
-import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
-import com.google.gson.reflect.TypeToken;
+import com.bluechilli.flutteruploader.json.HeaderParameters;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -83,7 +81,7 @@ public class UploadWorker extends Worker implements CountProgressListener {
     int timeout = getInputData().getInt(ARG_REQUEST_TIMEOUT, 3600);
     showNotification = getInputData().getBoolean(ARG_SHOW_NOTIFICATION, false);
     boolean isBinaryUpload = getInputData().getBoolean(ARG_BINARY_UPLOAD, false);
-    String headersJson = getInputData().getString(ARG_HEADERS);
+    HeaderParameters headers = new HeaderParameters(getInputData().getString(ARG_HEADERS));
     String parametersJson = getInputData().getString(ARG_DATA);
     String filesJson = getInputData().getString(ARG_FILES);
     tag = getInputData().getString(ARG_UPLOAD_REQUEST_TAG);
@@ -102,16 +100,11 @@ public class UploadWorker extends Worker implements CountProgressListener {
     msgComplete = res.getString(R.string.flutter_uploader_notification_complete);
 
     try {
-      Map<String, String> headers = null;
       Map<String, String> parameters = null;
       List<FileItem> files = new ArrayList<>();
       Gson gson = new Gson();
       Type type = new TypeToken<Map<String, String>>() {}.getType();
       Type fileItemType = new TypeToken<List<FileItem>>() {}.getType();
-
-      if (headersJson != null) {
-        headers = gson.fromJson(headersJson, type);
-      }
 
       if (parametersJson != null) {
         parameters = gson.fromJson(parametersJson, type);
@@ -174,16 +167,9 @@ public class UploadWorker extends Worker implements CountProgressListener {
       RequestBody requestBody = new CountingRequestBody(innerRequestBody, getId().toString(), this);
       Request.Builder requestBuilder = new Request.Builder();
 
-      if (headers != null) {
-
-        for (String key : headers.keySet()) {
-
-          String header = headers.get(key);
-
-          if (header != null && !header.isEmpty()) {
-            requestBuilder = requestBuilder.addHeader(key, header);
-          }
-        }
+      Map<String, String> validHeaders = headers.extract();
+      for (String key : validHeaders.keySet()) {
+        requestBuilder = requestBuilder.addHeader(key, validHeaders.get(key));
       }
 
       if (!URLUtil.isValidUrl(url)) {
@@ -283,8 +269,6 @@ public class UploadWorker extends Worker implements CountProgressListener {
 
       return Result.success(outputData);
 
-    } catch (JsonIOException ex) {
-      return handleException(context, ex, "json_error");
     } catch (UnknownHostException ex) {
       return handleException(context, ex, "unknown_host");
     } catch (IOException ex) {
