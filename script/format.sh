@@ -14,3 +14,13 @@ java -jar google-java-format-1.3-all-deps.jar --replace `find ${REPO_DIR} -name 
 
     exit 1
 )
+
+changes=`swiftlint`
+[[ 0 -eq $? ]] || (
+  echo "Swift formatting has failed."
+  echo "Please compile again in xcode and fix any warnings reported."
+  echo "The list of warnings is:"
+  echo ${changes}
+
+  exit 1
+)
